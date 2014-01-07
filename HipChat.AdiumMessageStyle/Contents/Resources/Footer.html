@@ -10,6 +10,8 @@ function scrubHTML(html) {
   html = html.replace(/"<a href="https?:\/\/.+?" title="https?:\/\/.+?">(https?:\/\/.+?)<\/a>"/g, '"$1"');
   // strip targets
   html = html.replace(/target="_blank"/g, '');
+  // embed images
+  html = html.replace(/<a .*>(https?:\/\/.*(?:jpg|png|gif))<\/a>/, '<a href="$1"><img src="$1" style="max-width:100%;"/></a>');
   return html
 }
 
@@ -21,7 +23,7 @@ function hipChatizeHTML(html) {
   // scrub the raw message
   rawMessage = scrubHTML(rawMessage);
   // add style to @ mentions
-  messageNode.innerHTML = rawMessage.replace(/(@"*[\d\w]*)/, '<span class="atTag">$1</span>');
+  messageNode.innerHTML = rawMessage.replace(/(@"*[\d\w]*) /g, '<span class="atTag">$1</span> ');
 
   var senderNode = html.querySelector('#sender');
 
@@ -45,8 +47,8 @@ function hipChatizeHTML(html) {
       newContent = document.createTextNode('Welcome!');
       senderNode.appendChild(newContent);
       messageClass = "welcomeMessage";
-    } else if(/jenkins/gi.test(rawSender)) {
-      if(/failed/gi.test(rawMessage)) {
+    } else if(/teamcity|jenkins|rollbar/gi.test(rawSender)) {
+      if(/fail(ed|ure)|new error/gi.test(rawMessage)) {
         messageClass = "systemMessage red";
       } else {
         messageClass = "systemMessage green";
